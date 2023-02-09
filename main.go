@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+const MAX_TEXT_LENGTH = 10000
 const DEFAULT_SENTENCE_LENGTH uint = 48
 const SEED = "4673578782814554715687"
 
@@ -18,21 +19,21 @@ var patternIndex = 0
 
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Println("Mising: please enter text of length.")
-		return
+		panic("Mising: please enter text of length.")
 	}
 
 	length, err := strconv.ParseUint(os.Args[1], 10, 64)
 
 	if err != nil {
-		fmt.Println("Failed: input length invalid.")
-		return
+		panic("Failed: input length invalid.")
 	}
 
-	text := generateText(uint(length))
+	for length != 0 {
+		text := generateText(uint(length % uint64(MAX_TEXT_LENGTH)))
+		fmt.Print(text)
 
-	fmt.Println(text)
-
+		length -= uint64(len(text))
+	}
 }
 
 func getPattern() string {
