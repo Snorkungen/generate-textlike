@@ -2,20 +2,38 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
 
-func main() {
+const DEFAULT_SENTENCE_LENGTH uint = 48
+const SEED = "4673578782814554715687"
 
-	text := generateSentence(65)
+var seedIndex uint8 = 0
 
-	fmt.Printf("%v \n%v \n", text, len(text))
-
-}
-
+// v = vowel c = consonant
 var patterns = [4]string{"cvcvvcv", "vccvc", "cvvcvc", "cvvcvc"}
 var patternIndex = 0
+
+func main() {
+	if len(os.Args) <= 1 {
+		fmt.Println("Mising: please enter text of length.")
+		return
+	}
+
+	length, err := strconv.ParseUint(os.Args[1], 10, 64)
+
+	if err != nil {
+		fmt.Println("Failed: input length invalid.")
+		return
+	}
+
+	text := generateText(uint(length))
+
+	fmt.Println(text)
+
+}
 
 func getPattern() string {
 	pattern := patterns[patternIndex]
@@ -44,12 +62,11 @@ func generateWord(length uint) string {
 }
 
 func capitalize(input string) string {
+	if len(input) < 1 {
+		return input
+	}
 	return strings.ToUpper(input[:1]) + input[1:]
 }
-
-const SEED = "4673578782814554715687"
-
-var seedIndex uint8 = 0
 
 func getWordLength(max uint) uint {
 	length, err := strconv.ParseUint(string(SEED[seedIndex]), 10, 4)
@@ -90,4 +107,32 @@ func generateSentence(length uint) string {
 	sentence = sentence[:len(sentence)-1] + "."
 
 	return capitalize(sentence)
+}
+
+func generateText(length uint) string {
+	text := ""
+
+	for {
+		if len(text) == int(length) {
+			break
+		}
+
+		sentenceLength := DEFAULT_SENTENCE_LENGTH
+
+		if len(text) == 0 {
+			sentenceLength += length % DEFAULT_SENTENCE_LENGTH
+		} else {
+			text += " "
+		}
+
+		diff := length - uint(len(text))
+
+		if sentenceLength > diff {
+			sentenceLength = diff
+		}
+
+		text += generateSentence(sentenceLength)
+	}
+
+	return text
 }
