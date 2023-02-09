@@ -8,25 +8,35 @@ import (
 
 func main() {
 
-	text := generateSentence(25)
+	text := generateSentence(65)
 
 	fmt.Printf("%v \n%v \n", text, len(text))
 
 }
 
-func generateWord(len uint) string {
-	if len < 2 {
-		return Vowel.Get()
+var patterns = [4]string{"cvcvvcv", "vccvc", "cvvcvc", "cvvcvc"}
+var patternIndex = 0
+
+func getPattern() string {
+	pattern := patterns[patternIndex]
+	patternIndex = (patternIndex + 1) % len(patterns)
+	return pattern
+}
+
+func generateWord(length uint) string {
+	if length < 2 {
+		return strings.ToLower(Vowel.Get())
 	}
 
-	startsWithConsonant := len&1 == 1
+	pattern := getPattern()
 	word := ""
 
-	for i := 0; i < int(len); i++ {
-		if startsWithConsonant && i&1 == 0 {
-			word += Vowel.Get()
-		} else {
+	for i := 0; i < int(length); i++ {
+		v := string(pattern[i%len(pattern)])
+		if v == "c" {
 			word += Consonant.Get()
+		} else {
+			word += Vowel.Get()
 		}
 	}
 
@@ -37,7 +47,7 @@ func capitalize(input string) string {
 	return strings.ToUpper(input[:1]) + input[1:]
 }
 
-const SEED = "782814554715687"
+const SEED = "4673578782814554715687"
 
 var seedIndex uint8 = 0
 
@@ -60,12 +70,24 @@ func generateSentence(length uint) string {
 
 	sentence := ""
 
+	var wordLength uint
+	var diff int
+
 	for len(sentence) < int(length) {
-		max := int(length) - len(sentence) - 1
-		wordLength := getWordLength(uint(max))
+		diff = int(length) - len(sentence)
+		wordLength = getWordLength(uint(diff) - 1)
+
+		if diff < int(wordLength)+1 {
+			wordLength = uint(diff) - 1
+		}
+		if diff-(int(wordLength)+1) < 2 {
+			wordLength = uint(diff) - 1
+		}
 
 		sentence += fmt.Sprintf("%v ", generateWord(wordLength))
 	}
+
+	sentence = sentence[:len(sentence)-1] + "."
 
 	return capitalize(sentence)
 }
